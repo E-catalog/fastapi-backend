@@ -15,7 +15,7 @@
           "name": "create_db",
           "type": "python",
           "request": "launch",
-          "module": "backend.database",
+          "module": "backend.db",
           "console": "internalConsole"
         }
     ]

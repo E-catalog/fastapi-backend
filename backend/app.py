@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 
+from backend.routers import individuals, places
+
 def create_app():
-    pass
+    app = FastAPI()
+
+    app.include_router(individuals.router)
+    app.include_router(places.router)
+
+    return app
 
 
-#app = create_app()
-app = FastAPI()
-
-@app.get('/')
-async def root():
-    return {'message': 'Hello World!'}
+app = create_app()
