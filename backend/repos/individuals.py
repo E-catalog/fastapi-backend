@@ -75,7 +75,7 @@ class IndividualsRepo:
     def delete(self, uid: int) -> None:
         individual = db_session.query(Individuals).get(uid)
         if not individual:
-            return
+            raise HTTPException(status_code=404, detail='Такого индивида нет в базе')
 
         db_session.delete(individual)
         db_session.commit()

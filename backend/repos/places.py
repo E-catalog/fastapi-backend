@@ -45,7 +45,7 @@ class PlacesRepo:
         place = db_session.query(Places).get(uid)
 
         if not place:
-            raise HTTPException(status_code=404, detail='Такого индивида нет в базе')
+            raise HTTPException(status_code=404, detail='Такого места нет в базе')
 
         place.name = name
         place.uid = uid
@@ -60,7 +60,7 @@ class PlacesRepo:
     def delete(self, uid: int) -> None:
         place = db_session.query(Places).get(uid)
         if not place:
-            return
+            raise HTTPException(status_code=404, detail='Такого места нет в базе')
 
         db_session.delete(place)
         db_session.commit()

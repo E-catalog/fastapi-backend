@@ -1,4 +1,3 @@
-from http import HTTPStatus
 import json
 from typing import TypeVar
 
@@ -32,7 +31,7 @@ def get_all_individuals():
     for individual in individuals:
         individual.links['place'] = places.get(individual.place_uid)
 
-    return to_json(individuals), HTTPStatus.OK
+    return to_json(individuals)
 
 
 @router.get('/{uid}')
@@ -44,10 +43,10 @@ def get_individual(uid: int):
     individual = Individual.from_orm(entity)
     place_entity = places_repo.get_by_id(individual.place_uid)
     individual.links['place'] = Place.from_orm(place_entity)
-    return individual.dict(), HTTPStatus.OK
+    return individual.dict()
 
 
-@router.post('/')
+@router.post('/', status_code=201)
 def create_individual(request: Request):
     payload = request.json
     if not payload:
@@ -70,7 +69,7 @@ def create_individual(request: Request):
         comments=individual.comments,
     )
     individual = Individual.from_orm(entity)
-    return individual.dict(), HTTPStatus.CREATED
+    return individual.dict()
 
 
 @router.put('/{uid}')
@@ -96,10 +95,10 @@ def update_individual(uid: int, request: Request):
         epoch=individual.epoch,
         comments=individual.comments,
     )
-    return Individual.from_orm(entity).dict(), HTTPStatus.OK
+    return Individual.from_orm(entity).dict()
 
 
-@router.delete('/{uid}')
+@router.delete('/{uid}', status_code=204)
 def del_individual(uid: int):
     individuals_repo.delete(uid)
-    return {}, HTTPStatus.NO_CONTENT
+    return

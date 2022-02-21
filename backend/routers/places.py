@@ -1,4 +1,3 @@
-from http import HTTPStatus
 import json
 from typing import TypeVar
 
@@ -25,7 +24,7 @@ def to_json(items: list[TC]):
 def get_all_places():
     entities = places_repo.get_all()
     places = [Place.from_orm(place) for place in entities]
-    return to_json(places), HTTPStatus.OK
+    return to_json(places)
 
 
 @router.get('/{uid}')
@@ -34,10 +33,10 @@ def get_place(uid: int):
     if not place:
         raise HTTPException(status_code=404, detail='Такого места нет в базе')
 
-    return Place.from_orm(place).dict(), HTTPStatus.OK
+    return Place.from_orm(place).dict()
 
 
-@router.post('/')
+@router.post('/', status_code=201)
 def create_place(request: Request):
     payload = request.json
     if not payload:
@@ -56,7 +55,7 @@ def create_place(request: Request):
         comments=place.comments,
     )
     new_place = Place.from_orm(entity)
-    return new_place.dict(), HTTPStatus.CREATED
+    return new_place.dict()
 
 
 @router.put('/{uid}')
@@ -79,10 +78,10 @@ def update_place(uid: int, request: Request):
         comments=place.comments,
     )
     updated_place = Place.from_orm(entity)
-    return updated_place.dict(), HTTPStatus.OK
+    return updated_place.dict()
 
 
-@router.delete('/{uid}')
+@router.delete('/{uid}', status_code=204)
 def del_place(uid: int):
     places_repo.delete(uid)
-    return {}, HTTPStatus.NO_CONTENT
+    return
