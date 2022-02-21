@@ -6,6 +6,7 @@ authors = ["Daria Veselkova <daria.veselkova@yandex.ru>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+fastapi = {extras = ["all"], version = "^0.74.0"}
 
 [tool.poetry.dev-dependencies]
 
