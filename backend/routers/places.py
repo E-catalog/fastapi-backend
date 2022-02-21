@@ -1,4 +1,5 @@
 import json
+from http import HTTPStatus
 from typing import TypeVar
 
 from fastapi import APIRouter, HTTPException, Request
@@ -9,7 +10,7 @@ from backend.schemas import Place
 
 router = APIRouter(
     prefix='/api/v1/places',
-    tags=['places']
+    tags=['places'],
 )
 
 places_repo = PlacesRepo()
@@ -31,21 +32,27 @@ def get_all_places():
 def get_place(uid: int):
     place = places_repo.get_by_id(uid)
     if not place:
-        raise HTTPException(status_code=404, detail='Такого места нет в базе')
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Такого места нет в базе')
 
     return Place.from_orm(place).dict()
 
 
-@router.post('/', status_code=201)
+@router.post('/', status_code=HTTPStatus.CREATED)
 def create_place(request: Request):
     payload = request.json
     if not payload:
-        raise HTTPException(status_code=400, detail='Тело запроса не может быть пустым')
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Тело запроса не может быть пустым',
+        )
 
     try:
         place = Place(**payload)
-    except ValidationError as error:
-        raise HTTPException(status_code=400, detail='Неверный тип данных в запросе')
+    except ValidationError:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Неверный тип данных в запросе',
+        )
 
     entity = places_repo.add(
         name=place.name,
@@ -62,12 +69,18 @@ def create_place(request: Request):
 def update_place(uid: int, request: Request):
     payload = request.json
     if not payload:
-        raise HTTPException(status_code=400, detail='Тело запроса не может быть пустым')
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Тело запроса не может быть пустым',
+        )
 
     try:
         place = Place(**payload)
-    except ValidationError as error:
-        raise HTTPException(status_code=400, detail='Неверный тип данных в запросе')
+    except ValidationError:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Неверный тип данных в запросе',
+        )
 
     entity = places_repo.update(
         uid=uid,
@@ -81,7 +94,7 @@ def update_place(uid: int, request: Request):
     return updated_place.dict()
 
 
-@router.delete('/{uid}', status_code=204)
+@router.delete('/{uid}', status_code=HTTPStatus.NO_CONTENT)
 def del_place(uid: int):
     places_repo.delete(uid)
-    return
+    return {}

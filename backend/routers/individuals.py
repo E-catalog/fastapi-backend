@@ -1,4 +1,5 @@
 import json
+from http import HTTPStatus
 from typing import TypeVar
 
 from fastapi import APIRouter, HTTPException, Request
@@ -10,7 +11,7 @@ from backend.schemas import Individual, Place
 
 router = APIRouter(
     prefix='/api/v1/individuals',
-    tags=['individuals']
+    tags=['individuals'],
 )
 
 individuals_repo = IndividualsRepo()
@@ -38,7 +39,10 @@ def get_all_individuals():
 def get_individual(uid: int):
     entity = individuals_repo.get_by_uid(uid)
     if not entity:
-        raise HTTPException(status_code=404, detail='Такого индивида нет в базе')
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Такого индивида нет в базе',
+        )
 
     individual = Individual.from_orm(entity)
     place_entity = places_repo.get_by_id(individual.place_uid)
@@ -46,16 +50,22 @@ def get_individual(uid: int):
     return individual.dict()
 
 
-@router.post('/', status_code=201)
+@router.post('/', status_code=HTTPStatus.CREATED)
 def create_individual(request: Request):
     payload = request.json
     if not payload:
-        raise HTTPException(status_code=400, detail='Тело запроса не может быть пустым')
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Тело запроса не может быть пустым',
+        )
 
     try:
         individual = Individual(**payload)
-    except ValidationError as error:
-        raise HTTPException(status_code=400, detail='Неверный тип данных в запросе')
+    except ValidationError:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Неверный тип данных в запросе',
+        )
 
     entity = individuals_repo.add(
         name=individual.name,
@@ -76,12 +86,18 @@ def create_individual(request: Request):
 def update_individual(uid: int, request: Request):
     payload = request.json
     if not payload:
-        raise HTTPException(status_code=400, detail='Тело запроса не может быть пустым')
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Тело запроса не может быть пустым',
+        )
 
     try:
         individual = Individual(**payload)
-    except ValidationError as error:
-        raise HTTPException(status_code=400, detail='Неверный тип данных в запросе')
+    except ValidationError:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Неверный тип данных в запросе',
+        )
 
     entity = individuals_repo.update(
         uid=uid,
@@ -98,7 +114,7 @@ def update_individual(uid: int, request: Request):
     return Individual.from_orm(entity).dict()
 
 
-@router.delete('/{uid}', status_code=204)
+@router.delete('/{uid}', status_code=HTTPStatus.NO_CONTENT)
 def del_individual(uid: int):
     individuals_repo.delete(uid)
-    return
+    return {}
