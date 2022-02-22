@@ -2,19 +2,20 @@ from http import HTTPStatus
 from typing import Optional
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
 
 from backend.db.models import Places
-from backend.db.session import db_session
+from backend.db.session import database
 
 
 class PlacesRepo:
 
-    def get_all(self) -> list[Places]:
-        return db_session.query(Places).all()
+    async def get_all(self) -> list[Places]:
+        query = Places.select()
+        return await database.fetch_all(query)
 
-    def get_by_id(self, uid: int):
-        return db_session.query(Places).get(uid)
+    async def get_by_id(self, uid: int):
+        query = Places.select().where(Places.c.uid == uid)
+        return await database.fetch_one(query)
 
     def add(
         self,

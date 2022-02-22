@@ -2,19 +2,20 @@ from http import HTTPStatus
 from typing import Optional
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
 
 from backend.db.models import Individuals
-from backend.db.session import db_session
+from backend.db.session import database
 
 
 class IndividualsRepo:
 
-    def get_all(self) -> list[Individuals]:
-        return db_session.query(Individuals).all()
+    async def get_all(self) -> list[Individuals]:
+        query = Individuals.select()
+        return await database.fetch_all(query)
 
-    def get_by_uid(self, uid: int) -> Optional[Individuals]:
-        return db_session.query(Individuals).get(uid)
+    async def get_by_uid(self, uid: int) -> Individuals:
+        query = Individuals.select().where(Individuals.c.uid == uid)
+        return await database.fetch_one(query)
 
     def add(
         self,

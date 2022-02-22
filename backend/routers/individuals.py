@@ -1,8 +1,7 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
-from sqlalchemy.orm import Session
 
 from backend.repos.individuals import IndividualsRepo
 from backend.repos.places import PlacesRepo

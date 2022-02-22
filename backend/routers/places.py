@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import List
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
@@ -14,10 +15,11 @@ router = APIRouter(
 places_repo = PlacesRepo()
 
 
-@router.get('/')
-def get_all_places():
-    entities = places_repo.get_all()
-    places = [Place.from_orm(place) for place in entities]
+@router.get('/', response_model=List[Place])
+async def get_all_places():
+    #entities = places_repo.get_all()
+    #places = [Place.from_orm(place) for place in entities]
+    places = await places_repo.get_all()
     return [place.dict() for place in places]
 
 

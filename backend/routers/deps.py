@@ -1,3 +1,4 @@
+"""
 from backend.db.session import db_session
 
 
@@ -7,3 +8,4 @@ def get_db():
         yield db
     finally:
         db.close()
+"""
