@@ -1,6 +1,8 @@
+from http import HTTPStatus
 from typing import Optional
 
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from backend.db.models import Individuals
 from backend.db.session import db_session
@@ -57,7 +59,10 @@ class IndividualsRepo:
         individual = db_session.query(Individuals).get(uid)
 
         if not individual:
-            raise HTTPException(status_code=404, detail='Такого индивида нет в базе')
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='Такого индивида нет в базе',
+            )
 
         individual.name = name
         individual.place_uid = place_id
@@ -75,7 +80,10 @@ class IndividualsRepo:
     def delete(self, uid: int) -> None:
         individual = db_session.query(Individuals).get(uid)
         if not individual:
-            raise HTTPException(status_code=404, detail='Такого индивида нет в базе')
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='Такого индивида нет в базе',
+            )
 
         db_session.delete(individual)
         db_session.commit()

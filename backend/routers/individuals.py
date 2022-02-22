@@ -1,12 +1,12 @@
-import json
 from http import HTTPStatus
-from typing import TypeVar
 
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, ValidationError
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import ValidationError
+from sqlalchemy.orm import Session
 
 from backend.repos.individuals import IndividualsRepo
 from backend.repos.places import PlacesRepo
+from backend.routers import deps
 from backend.schemas import Individual, Place
 
 router = APIRouter(
@@ -16,11 +16,6 @@ router = APIRouter(
 
 individuals_repo = IndividualsRepo()
 places_repo = PlacesRepo()
-TC = TypeVar('TC', bound=BaseModel)
-
-
-def to_json(items: list[TC]):
-    return json.dumps([item.dict() for item in items])
 
 
 @router.get('/')
@@ -29,10 +24,10 @@ def get_all_individuals():
     entities = individuals_repo.get_all()
     individuals = [Individual.from_orm(entity) for entity in entities]
 
-    for individual in individuals:
-        individual.links['place'] = places.get(individual.place_uid)
+    for item in individuals:
+        item.links['place'] = places[item.place_uid]
 
-    return to_json(individuals)
+    return [individual.dict() for individual in individuals]
 
 
 @router.get('/{uid}')
@@ -51,8 +46,8 @@ def get_individual(uid: int):
 
 
 @router.post('/', status_code=HTTPStatus.CREATED)
-def create_individual(request: Request):
-    payload = request.json
+async def create_individual(request: Request):
+    payload = await request.json()
     if not payload:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
@@ -83,8 +78,8 @@ def create_individual(request: Request):
 
 
 @router.put('/{uid}')
-def update_individual(uid: int, request: Request):
-    payload = request.json
+async def update_individual(uid: int, request: Request):
+    payload = await request.json()
     if not payload:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,

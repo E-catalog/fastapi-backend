@@ -1,6 +1,8 @@
+from http import HTTPStatus
 from typing import Optional
 
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from backend.db.models import Places
 from backend.db.session import db_session
@@ -45,7 +47,7 @@ class PlacesRepo:
         place = db_session.query(Places).get(uid)
 
         if not place:
-            raise HTTPException(status_code=404, detail='Такого места нет в базе')
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Такого места нет в базе')
 
         place.name = name
         place.uid = uid
@@ -60,7 +62,7 @@ class PlacesRepo:
     def delete(self, uid: int) -> None:
         place = db_session.query(Places).get(uid)
         if not place:
-            raise HTTPException(status_code=404, detail='Такого места нет в базе')
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Такого места нет в базе')
 
         db_session.delete(place)
         db_session.commit()

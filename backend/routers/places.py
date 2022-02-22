@@ -1,9 +1,7 @@
-import json
 from http import HTTPStatus
-from typing import TypeVar
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from backend.repos.places import PlacesRepo
 from backend.schemas import Place
@@ -14,18 +12,13 @@ router = APIRouter(
 )
 
 places_repo = PlacesRepo()
-TC = TypeVar('TC', bound=BaseModel)
-
-
-def to_json(items: list[TC]):
-    return json.dumps([item.dict() for item in items])
 
 
 @router.get('/')
 def get_all_places():
     entities = places_repo.get_all()
     places = [Place.from_orm(place) for place in entities]
-    return to_json(places)
+    return [place.dict() for place in places]
 
 
 @router.get('/{uid}')
@@ -38,8 +31,8 @@ def get_place(uid: int):
 
 
 @router.post('/', status_code=HTTPStatus.CREATED)
-def create_place(request: Request):
-    payload = request.json
+async def create_place(request: Request):
+    payload = await request.json()
     if not payload:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
@@ -66,8 +59,8 @@ def create_place(request: Request):
 
 
 @router.put('/{uid}')
-def update_place(uid: int, request: Request):
-    payload = request.json
+async def update_place(uid: int, request: Request):
+    payload = await request.json()
     if not payload:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,

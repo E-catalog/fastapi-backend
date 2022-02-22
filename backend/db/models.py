@@ -1,9 +1,38 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, Integer, MetaData, String, Table, Text
 
-from backend.db.session import Base
+#from sqlalchemy.orm import relationship
 
+#from backend.db.session import Base
 
+metadata_obj = MetaData()
+
+Places = Table(
+    'places',
+    metadata_obj,
+    Column('uid', Integer, primary_key=True),
+    Column('name', String, unique=True, nullable=False),
+    Column('head_of_excavations', String),
+    Column('type_of_burial_site', String),
+    Column('coordinates', String),
+    Column('comments', Text),
+)
+
+Individuals = Table(
+    'individuals',
+    metadata_obj,
+    Column('uid', Integer, primary_key=True),
+    Column('place_uid', Integer, ForeignKey('Places.uid', ondelete='CASCADE'), nullable=False),
+    Column('name', String, nullable=False),
+    Column('year_of_excavation', Integer),
+    Column('individual_type', String),
+    Column('sex', String),
+    Column('age', String),
+    Column('preservation', String),
+    Column('epoch', String),
+    Column('comments', Text),
+)
+
+"""
 class Places(Base):
     __tablename__ = 'places'
 
@@ -42,3 +71,4 @@ class Individuals(Base):
             sex=self.sex,
             age=self.age,
         )
+"""
