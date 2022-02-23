@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "fastapi-backend"
+version = "0.1.0"
+description = ""
+authors = ["Daria Veselkova <daria.veselkova@yandex.ru>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = {extras = ["all"], version = "^0.74.0"}
+SQLAlchemy = "^1.4.31"
+psycopg2-binary = "^2.9.3"
+databases = {extras = ["postgresql"], version = "^0.5.5"}
+
+[tool.poetry.dev-dependencies]
+wemake-python-styleguide = "^0.16.0"
+mypy = "^0.931"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
