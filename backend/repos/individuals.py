@@ -2,15 +2,16 @@ from http import HTTPStatus
 from typing import Optional
 
 from fastapi import HTTPException
+from sqlalchemy.sql import join
 
-from backend.db.models import Individuals
+from backend.db.models import Individuals, Places
 from backend.db.session import database
 
 
 class IndividualsRepo:
 
     async def get_all(self) -> list[Individuals]:
-        query = Individuals.select()
+        query = Individuals.select().select_from(join(Individuals, Places))
         return await database.fetch_all(query)
 
     async def get_by_uid(self, uid: int) -> Individuals:

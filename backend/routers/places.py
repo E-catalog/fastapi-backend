@@ -17,22 +17,15 @@ places_repo = PlacesRepo()
 
 @router.get('/', response_model=List[Place])
 async def get_all_places():
-    #entities = places_repo.get_all()
-    #places = [Place.from_orm(place) for place in entities]
-    places = await places_repo.get_all()
-    return [place.dict() for place in places]
+    return await places_repo.get_all()
 
 
-@router.get('/{uid}')
-def get_place(uid: int):
-    place = places_repo.get_by_id(uid)
-    if not place:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Такого места нет в базе')
-
-    return Place.from_orm(place).dict()
+@router.get('/{uid}', response_model=Place)
+async def get_place(uid: int):
+    return await places_repo.get_by_id(uid)
 
 
-@router.post('/', status_code=HTTPStatus.CREATED)
+@router.post('/', response_model=Place, status_code=HTTPStatus.CREATED)
 async def create_place(request: Request):
     payload = await request.json()
     if not payload:
@@ -49,18 +42,16 @@ async def create_place(request: Request):
             detail='Неверный тип данных в запросе',
         )
 
-    entity = places_repo.add(
+    return await places_repo.add(
         name=place.name,
         head_of_excavations=place.head_of_excavations,
         type_of_burial_site=place.type_of_burial_site,
         coordinates=place.coordinates,
         comments=place.comments,
     )
-    new_place = Place.from_orm(entity)
-    return new_place.dict()
 
 
-@router.put('/{uid}')
+@router.put('/{uid}', response_model=Place)
 async def update_place(uid: int, request: Request):
     payload = await request.json()
     if not payload:
@@ -77,7 +68,7 @@ async def update_place(uid: int, request: Request):
             detail='Неверный тип данных в запросе',
         )
 
-    entity = places_repo.update(
+    await places_repo.update(
         uid=uid,
         name=place.name,
         head_of_excavations=place.head_of_excavations,
@@ -85,11 +76,10 @@ async def update_place(uid: int, request: Request):
         coordinates=place.coordinates,
         comments=place.comments,
     )
-    updated_place = Place.from_orm(entity)
-    return updated_place.dict()
+    return await places_repo.get_by_id(uid)
 
 
 @router.delete('/{uid}', status_code=HTTPStatus.NO_CONTENT)
-def del_place(uid: int):
-    places_repo.delete(uid)
+async def del_place(uid: int):
+    await places_repo.delete(uid)
     return {}

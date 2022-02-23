@@ -1,4 +1,4 @@
-from backend.db.models import *  # noqa: F401, WPS347, F403
+from backend.db.models import Individuals, Places  # noqa: F401, WPS347, F403
 from backend.db.session import Base, engine
 
 

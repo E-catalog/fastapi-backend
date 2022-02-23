@@ -1,11 +1,11 @@
 from http import HTTPStatus
+from typing import List
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
 
 from backend.repos.individuals import IndividualsRepo
 from backend.repos.places import PlacesRepo
-from backend.routers import deps
 from backend.schemas import Individual, Place
 
 router = APIRouter(
@@ -17,16 +17,9 @@ individuals_repo = IndividualsRepo()
 places_repo = PlacesRepo()
 
 
-@router.get('/')
-def get_all_individuals():
-    places = {place.uid: Place.from_orm(place) for place in places_repo.get_all()}
-    entities = individuals_repo.get_all()
-    individuals = [Individual.from_orm(entity) for entity in entities]
-
-    for item in individuals:
-        item.links['place'] = places[item.place_uid]
-
-    return [individual.dict() for individual in individuals]
+@router.get('/', response_model=List[Individual])
+async def get_all_individuals():
+    return await individuals_repo.get_all()
 
 
 @router.get('/{uid}')

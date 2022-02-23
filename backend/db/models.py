@@ -1,10 +1,10 @@
 from sqlalchemy import Column, ForeignKey, Integer, MetaData, String, Table, Text
 
+from backend.db.session import metadata_obj
+
 #from sqlalchemy.orm import relationship
 
 #from backend.db.session import Base
-
-metadata_obj = MetaData()
 
 Places = Table(
     'places',
@@ -21,7 +21,7 @@ Individuals = Table(
     'individuals',
     metadata_obj,
     Column('uid', Integer, primary_key=True),
-    Column('place_uid', Integer, ForeignKey('Places.uid', ondelete='CASCADE'), nullable=False),
+    Column('place_uid', Integer, ForeignKey('places.uid', ondelete='CASCADE'), nullable=False),
     Column('name', String, nullable=False),
     Column('year_of_excavation', Integer),
     Column('individual_type', String),

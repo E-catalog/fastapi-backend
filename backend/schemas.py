@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class Model(BaseModel):
     uid: int
-    links: dict[str, Any] = {}
+    #links: dict[str, Any] = {}
 
     class Config:
         orm_mode = True

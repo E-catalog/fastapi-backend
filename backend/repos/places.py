@@ -13,11 +13,14 @@ class PlacesRepo:
         query = Places.select()
         return await database.fetch_all(query)
 
-    async def get_by_id(self, uid: int):
+    async def get_by_id(self, uid: int) -> Places:
         query = Places.select().where(Places.c.uid == uid)
-        return await database.fetch_one(query)
+        place = await database.fetch_one(query)
+        if not place:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Такого места нет в базе')
+        return place
 
-    def add(
+    async def add(
         self,
         name: str,
         head_of_excavations: Optional[str],
@@ -25,18 +28,19 @@ class PlacesRepo:
         coordinates: Optional[str],
         comments: Optional[str],
     ) -> Places:
-        new_place = Places(
+
+        query = Places.insert().values(
             name=name,
             head_of_excavations=head_of_excavations,
             type_of_burial_site=type_of_burial_site,
             coordinates=coordinates,
             comments=comments,
         )
-        db_session.add(new_place)
-        db_session.commit()
-        return new_place
+        new_place_id = await database.execute(query)
+        new_place = Places.select().where(Places.c.uid == new_place_id)
+        return await database.fetch_one(new_place)
 
-    def update(
+    async def update(
         self,
         uid: int,
         name: str,
@@ -45,25 +49,26 @@ class PlacesRepo:
         coordinates: Optional[str],
         comments: Optional[str],
     ) -> Places:
-        place = db_session.query(Places).get(uid)
 
+        place_query = Places.select().where(Places.c.uid == uid)
+        place = await database.fetch_one(place_query)
         if not place:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Такого места нет в базе')
 
-        place.name = name
-        place.uid = uid
-        place.head_of_excavations = head_of_excavations
-        place.type_of_burial_site = type_of_burial_site
-        place.coordinates = coordinates
-        place.comments = comments
+        query = Places.update().where(Places.c.uid == uid).values(
+            name=name,
+            head_of_excavations=head_of_excavations,
+            type_of_burial_site=type_of_burial_site,
+            coordinates=coordinates,
+            comments=comments,
+        )
+        return await database.execute(query)
 
-        db_session.commit()
-        return place
-
-    def delete(self, uid: int) -> None:
-        place = db_session.query(Places).get(uid)
+    async def delete(self, uid: int) -> None:
+        place_query = Places.select().where(Places.c.uid == uid)
+        place = await database.execute(place_query)
         if not place:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Такого места нет в базе')
 
-        db_session.delete(place)
-        db_session.commit()
+        query = Places.delete().where(Places.c.uid == uid)
+        return await database.execute(query)
