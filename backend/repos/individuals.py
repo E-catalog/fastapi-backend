@@ -15,13 +15,20 @@ class IndividualsRepo:
         return await database.fetch_all(query)
 
     async def get_by_uid(self, uid: int) -> Individuals:
-        query = Individuals.select().where(Individuals.c.uid == uid)
-        return await database.fetch_one(query)
+        new_join = join(Individuals, Places)
+        query = Individuals.select().select_from(new_join).where(Individuals.c.uid == uid)
+        individual = await database.fetch_one(query)
+        if not individual:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='Такого индивида нет в базе',
+            )
+        return individual
 
-    def add(
+    async def add(
         self,
         name: str,
-        place_id: int,
+        place_uid: int,
         year_of_excavation: Optional[int],
         sex: Optional[str],
         age: Optional[str],
@@ -30,9 +37,10 @@ class IndividualsRepo:
         epoch: Optional[str],
         comments: Optional[str],
     ) -> Individuals:
-        new_individual = Individuals(
+
+        query = Individuals.insert().values(
             name=name,
-            place_uid=place_id,
+            place_uid=place_uid,
             sex=sex,
             age=age,
             year_of_excavation=year_of_excavation,
@@ -41,11 +49,11 @@ class IndividualsRepo:
             epoch=epoch,
             comments=comments,
         )
-        db_session.add(new_individual)
-        db_session.commit()
-        return new_individual
+        new_individual_uid = await database.execute(query)
+        new_individual = Individuals.select().where(Individuals.c.uid == new_individual_uid)
+        return await database.fetch_one(new_individual)
 
-    def update(
+    async def update(
         self,
         uid: int,
         name: str,
@@ -58,34 +66,35 @@ class IndividualsRepo:
         epoch: Optional[str],
         comments: Optional[str],
     ) -> Individuals:
-        individual = db_session.query(Individuals).get(uid)
 
+        individual_query = Individuals.select().where(Individuals.c.uid == uid)
+        individual = await database.fetch_one(individual_query)
         if not individual:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
                 detail='Такого индивида нет в базе',
             )
 
-        individual.name = name
-        individual.place_uid = place_id
-        individual.sex = sex
-        individual.age = age
-        individual.year_of_excavation = year_of_excavation
-        individual.individual_type = individual_type
-        individual.preservation = preservation
-        individual.epoch = epoch
-        individual.comments = comments
+        query = Individuals.update().where(Individuals.c.uid == uid).values(
+            name=name,
+            place_uid=place_id,
+            sex=sex,
+            age=age,
+            year_of_excavation=year_of_excavation,
+            individual_type=individual_type,
+            preservation=preservation,
+            epoch=epoch,
+            comments=comments,
+        )
+        return await database.execute(query)
 
-        db_session.commit()
-        return individual
-
-    def delete(self, uid: int) -> None:
-        individual = db_session.query(Individuals).get(uid)
+    async def delete(self, uid: int) -> None:
+        query = Individuals.select().where(Individuals.c.uid == uid)
+        individual = await database.fetch_one(query)
         if not individual:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
                 detail='Такого индивида нет в базе',
             )
-
-        db_session.delete(individual)
-        db_session.commit()
+        query = Individuals.delete().where(Individuals.c.uid == uid)
+        return await database.execute(query)
